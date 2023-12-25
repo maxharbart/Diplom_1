@@ -1,77 +1,75 @@
-import org.junit.Rule;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.rules.ErrorCollector;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import praktikum.Bun;
 import praktikum.Burger;
 import praktikum.Ingredient;
 import praktikum.IngredientType;
-import static org.junit.Assert.assertFalse;
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-@RunWith(Parameterized.class)
 public class BurgerTest {
-    Burger burger;
-    String bunName;
-    float bunPrice;
-    IngredientType ingredientType;
-    String ingredientName;
-    float ingredientPrice;
-    float totalPrice;
 
-    @Rule
-    public ErrorCollector collector = new ErrorCollector();
+    @Mock
+    private Bun bun;
+    @Mock
+    Ingredient firstIngredient;
+    @Mock
+    Ingredient secondIngredient;
 
-    @Parameterized.Parameters
-    public static Object[][] getTestData() {
-        return new Object[][] {
-                {"black bun", 100, IngredientType.FILLING, "Начинка", 50, 250},
-                {"white bun", 200, IngredientType.SAUCE, "Соус", 25, 425},
-                {"red bun", 230, IngredientType.SAUCE, "Соус", 20, 480},
-        };
+    private Burger burger;
+
+    @Before
+    public void setup(){
+
+        MockitoAnnotations.initMocks(this);
+        burger = new Burger();
     }
 
-    public BurgerTest(String bunName, float bunPrice,
-                      IngredientType ingredientType, String ingredientName, float ingredientPrice, float totalPrice) {
-        this.bunName = bunName;
-        this.bunPrice = bunPrice;
-        this.ingredientType = ingredientType;
-        this.ingredientName = ingredientName;
-        this.ingredientPrice = ingredientPrice;
-        this.totalPrice = totalPrice;
-        this.burger = new Burger();
-    }
 
     @Test
-    public void setBunsTest() {
-        burger.setBuns(new Bun(bunName, bunPrice));
-        assertTrue("В рецепте нет добавленной булочки", burger.getReceipt().contains(bunName));
-    }
+    public void moveIngredientTest(){
 
-    @Test
-    public void addIngredientTest() {
-        burger.setBuns(new Bun(bunName, bunPrice));
-        burger.addIngredient(new Ingredient(ingredientType, ingredientName, ingredientPrice));
-        assertTrue("В рецепте нет добавленного ингредиента", burger.getReceipt().contains(ingredientName));
-    }
-
-    @Test
-    public void removeIngredientTest() {
-        burger.setBuns(new Bun(bunName, bunPrice));
-        burger.addIngredient(new Ingredient(ingredientType, ingredientName, ingredientPrice));
-        burger.removeIngredient(0);
-        assertFalse("В рецепте есть ингредиент, который был удален", burger.getReceipt().contains(ingredientName));
-    }
-
-    @Test
-    public void moveIngredientTest() {
-        burger.setBuns(new Bun(bunName, bunPrice));
-        Ingredient firstIngredient = new Ingredient(ingredientType, ingredientName, ingredientPrice);
         burger.addIngredient(firstIngredient);
-        burger.addIngredient(new Ingredient(IngredientType.SAUCE, "Соус терияки", 0));
-        burger.moveIngredient(0, 1);
-        assertTrue("Не изменился порядок ингредиентов бургера после их перемещения", burger.ingredients.get(1).equals(firstIngredient));
+        burger.addIngredient(secondIngredient);
+
+        burger.moveIngredient(0,1);
+        assertTrue("ингредиент должны быть перемещены",burger.ingredients.indexOf(firstIngredient) == 1);
+    }
+
+    @Test
+    public void getPriceTest(){
+        Mockito.when(bun.getPrice()).thenReturn(15.5F);
+        Mockito.when(firstIngredient.getPrice()).thenReturn(10f);
+
+        burger.addIngredient(firstIngredient);
+        burger.setBuns(bun);
+
+        assertTrue("некорректная цена",burger.getPrice() == 41f);
+    }
+
+    @Test
+    public void getReceiptTest(){
+        Mockito.when(bun.getName()).thenReturn("Ржаной");
+        Mockito.when(bun.getPrice()).thenReturn(15.5F);
+        Mockito.when(firstIngredient.getPrice()).thenReturn(10f);
+        Mockito.when(firstIngredient.getName()).thenReturn("Cырный");
+        Mockito.when(firstIngredient.getType()).thenReturn(IngredientType.SAUCE);
+
+        burger.setBuns(bun);
+        burger.addIngredient(firstIngredient);
+
+        StringBuilder expected = new StringBuilder(String.format("(==== %s ====)%n", bun.getName()));
+
+        expected.append(String.format("= %s %s =%n", firstIngredient.getType().toString().toLowerCase(),
+                firstIngredient.getName()));
+        expected.append(String.format("(==== %s ====)%n", bun.getName()));
+        expected.append(String.format("%nPrice: %f%n", burger.getPrice()));
+
+        assertEquals("некорректный рецепт",expected.toString(),burger.getReceipt());
     }
 
 }
