@@ -37,7 +37,7 @@ public class BurgerTest {
         burger.addIngredient(secondIngredient);
 
         burger.moveIngredient(0,1);
-        assertTrue("ингредиент должны быть перемещены",burger.ingredients.indexOf(firstIngredient) == 1);
+        assertEquals("ингредиент должны быть перемещены", 1, burger.ingredients.indexOf(firstIngredient));
     }
 
     @Test
@@ -48,7 +48,7 @@ public class BurgerTest {
         burger.addIngredient(firstIngredient);
         burger.setBuns(bun);
 
-        assertTrue("некорректная цена",burger.getPrice() == 41f);
+        assertEquals("некорректная цена", 41f, burger.getPrice(), 0.0);
     }
 
     @Test
